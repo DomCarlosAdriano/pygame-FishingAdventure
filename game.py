@@ -31,9 +31,9 @@ score = 0
 
 platforms = [
     Rect((0, 650), (1200, 50)),
-    Rect((200, 470), (150, 20)),
-    Rect((400, 400), (150, 20)),
-    Rect((650, 450), (150, 20)),
+    Rect((300, 550), (150, 20)),
+    Rect((500, 480), (150, 20)),
+    Rect((750, 450), (150, 20)),
 ]
 
 # --- CLASSES ---
@@ -75,6 +75,7 @@ class Hero(Actor):
 
         # Pular
         if keyboard.space and on_ground:
+            if sound_on: sounds.jump.play() 
             self.velocity_y = jump_strength
             self.image = "hero_jump"
             self.is_jumping = True
@@ -135,7 +136,7 @@ class Coin:
         if not self.collected:
             self.actor.pos = (self.base_x - camera_x, self.base_y)
         else:
-            self.actor.pos = (-100, -100)  # "esconde" a moeda
+            self.actor.pos = (-100, -100) 
 
     def check_collision(self, hero):
         return hero.colliderect(self.actor)
@@ -220,7 +221,7 @@ def on_mouse_down(pos):
         if buttons["start"].collidepoint(pos):
             if sound_on: sounds.click.play()
             game_state = "playing"
-            game_started_message = "Jogo Iniciado!"
+            game_started_message = "Use as setas para mover e espaço para pular."
         elif buttons["sound"].collidepoint(pos):
             if sound_on: sounds.click.play()
             sound_on = not sound_on
@@ -244,13 +245,16 @@ def update():
     for enemy in enemies:
         enemy.update()
         if enemy.check_collision(hero):
+            if sound_on: sounds.hit.play() 
             reset_game()
             game_started_message = " "
             return
 
     for coin in coins:
         coin.update()
-        if coin.check_collision(hero):
+        # Modificado para tocar o som apenas uma vez
+        if coin.check_collision(hero) and not coin.collected:
+            if sound_on: sounds.coin.play() 
             coin.collected = True
             score += 10
 
@@ -258,6 +262,8 @@ def update():
     if score >= 30:
         game_state = "won"
         game_started_message = "Você venceu!"
+        if sound_on:
+            sounds.win.play()
 
     camera_x = hero.x - WIDTH // 2
     if camera_x < 0:
